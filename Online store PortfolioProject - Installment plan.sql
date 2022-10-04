@@ -10,7 +10,7 @@
 		1.3 a summary report on the amounts of payments and arrears under the contract 
 	2. for all contracts for a certain period of time (general numbers for actual and finished installment plans)
 
-Note: Column names are in quotation marks as ukraninan language was used before
+Note: Column names are in quotation marks as ukraninan language was used before and code more readable when the names highlighted in SSMS.
 */
 
 
@@ -177,48 +177,66 @@ SELECT
 
 FROM
 (
-SELECT I.merchant_id AS 'merch_id'
-		,I.contract_number AS 'contr_id'
-		,CONVERT(VARCHAR,I.date_purch,104) AS 'date_purch'
-		,I.qu_inst AS 'qu_monthly_pay'
-		,I.inst AS 'amount_monthly_pay'
-		,convert(varchar,dateadd(mm,I.qu_inst-1,I.date_purch),104) AS 'last_payment_date'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=0,1,0) AS 'zero_month_debt'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=1,1,0) AS 'one_month_debt'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=2,1,0) AS 'two_month_debt'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=3,1,0) AS 'three_month_debt'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment>=4,1,0) AS 'fourandmore_month_debt'
-		,i.qu_inst*i.inst AS 'credit_summ'
-		,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst) AS sum_mustbepain_on3004
-		,p.t_pay AS 'already_paid'
-		,iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay) AS 'sum_debt'
-		,iif(DATEDIFF(mm,I.date_purch,@report_date)>=i.qu_inst,'Finished','Actual') AS 'contract_status'
-		,iif(p.t_pay<iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)
-			,'Have a debt','No debt') AS 'debt_status'
-		,iif(DATEDIFF(mm,@report_date,dateadd(mm,I.qu_inst-1,I.date_purch))<0,0,DATEDIFF(mm,@report_date,dateadd(mm,I.qu_inst-1,I.date_purch)))*I.inst AS 'left_pay_acc_contr'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=0
-			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) 
-			,0) AS 'zero_month_debt_amount'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=1
-			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) 
-			,0) AS 'one_month_debt_amount'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=2
-			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) 
-			,0) AS 'two_month_debt_amount'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=3
-			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) 
-			,0) AS 'three_month_debt_amount'
-		,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment>=4
-			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
-			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) 
-			,0) AS 'fourandmore_month_debt_amount'
-
-		
+SELECT 
+	I.merchant_id AS 'merch_id'
+	,I.contract_number AS 'contr_id'
+	,CONVERT(VARCHAR,I.date_purch,104) AS 'date_purch'
+	,I.qu_inst AS 'qu_monthly_pay'
+	,I.inst AS 'amount_monthly_pay'
+	,convert(varchar,dateadd(mm,I.qu_inst-1,I.date_purch),104) AS 'last_payment_date'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=0,1,0) AS 'zero_month_debt'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=1,1,0) AS 'one_month_debt'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=2,1,0) AS 'two_month_debt'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=3,1,0) AS 'three_month_debt'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment>=4,1,0) AS 'fourandmore_month_debt'
+	,i.qu_inst*i.inst AS 'credit_summ'
+	,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst) AS sum_mustbepain_on3004
+	,p.t_pay AS 'already_paid'
+	,iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay) AS 'sum_debt'				
+	,iif(DATEDIFF(mm,I.date_purch,@report_date)>=i.qu_inst,'Finished','Actual') AS 'contract_status'
+	,iif(p.t_pay<iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst), 'Have a debt', 'No debt') AS 'debt_status'
+	,iif(DATEDIFF(mm,@report_date,dateadd(mm,I.qu_inst-1,I.date_purch))<0,0,
+			DATEDIFF(mm,@report_date,dateadd(mm,I.qu_inst-1,I.date_purch)))*I.inst AS 'left_pay_acc_contr'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst,
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=0
+			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)),0) AS 'zero_month_debt_amount'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=1
+			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)),0) AS 'one_month_debt_amount'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=2
+			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)),0) AS 'two_month_debt_amount'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst,
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment=3
+			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)),0) AS 'three_month_debt_amount'
+	,iif(iif(DATEADD(mm,I.qu_inst-1,I.date_purch) <= @report_date, I.qu_inst, 
+			DATEDIFF(mm,DATEADD(mm,I.qu_inst-1,I.date_purch),@report_date)+I.qu_inst)-B.num_of_payment>=4
+			,(iif((iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)<0,0
+			,iif(DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch))<=0,i.inst*i.qu_inst,
+			(i.qu_inst-DATEDIFF(mm,@report_date,DATEADD(mm,i.qu_inst-1,i.date_purch)))*i.inst)-p.t_pay)) ,0) AS 'fourandmore_month_debt_amount'
 FROM 
 	installment_plan I
 	LEFT JOIN (
@@ -255,7 +273,6 @@ FROM
 					A.merchant_id,A.contract_number
 				) B
 				ON I.merchant_id=B.merchant_id AND I.contract_number=B.contract_number
-
 	LEFT JOIN (
 			   SELECT 
 					merchant_id,contract_number,SUM(payment) AS 't_pay'
